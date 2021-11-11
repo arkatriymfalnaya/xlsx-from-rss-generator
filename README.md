@@ -24,4 +24,7 @@ node src/index.js -f https://amplifr.com/blog/feed -a 128 -o noOGCard -n insta
 
 // generate sheet with 56 cells | file name fb.xlsx | empty **images** cell
 node src/index.js -f https://amplifr.com/blog/feed -a 56 -o noImage -n fb
+
+// generate sheet with 14 cells | file name result.xlsx | empty **images** cell | empty **url** cell
+node src/index.js -f https://amplifr.com/blog/feed -a 14 -o noImage -o noOGCard
 ```
