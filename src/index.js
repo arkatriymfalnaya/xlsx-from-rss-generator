@@ -98,7 +98,7 @@ let generatePostsMetaFromFeed = async (feed, amount) => {
   return res
 }
 
-let entry = async (rssFeed, amount = 5, outputFileName = 'result') => {
+let entry = async (rssFeed, amount = 5, outputFileName = 'result', cellOptions = []) => {
   process.stdout.write(`parsing your rss feed...\n`)
   let feed = await parser.parseURL(rssFeed)
 
@@ -124,6 +124,17 @@ let entry = async (rssFeed, amount = 5, outputFileName = 'result') => {
   for (let i = 0; i < generatedRows.length; i++) {
     let { title, description, image, link } = generatedRows[i]
     let columnText = `${title}\n\n${description}\n\n${link}`
+
+    if (cellOptions.length) {
+      cellOptions.forEach(cOption => {
+        if (cOption === 'noImage') {
+          image = ''
+        }
+        if (cOption === 'noOGCard') {
+          link = ''
+        }
+      })
+    }
 
     worksheet.addRow({
       col_text: columnText,
@@ -152,8 +163,9 @@ const options = yargs
   .option('f', { alias: 'feed', describe: 'RSS feed uri', type: 'string', demandOption: true })
   .option('a', { alias: 'amount', describe: 'Needed RSS feed posts amount', type: 'string' })
   .option('n', { alias: 'outputFileName', describe: 'XLS output file name', type: 'string' })
+  .option('o', { alias: 'cellOptions', describe: 'Sheet cell additional options', type: 'array' })
   .argv
 
 process.stdout.write(`great options, bruh, let's start already!\n`)
 
-entry(options.feed, options.amount, options.outputFileName)
+entry(options.feed, options.amount, options.outputFileName, options.cellOptions)
