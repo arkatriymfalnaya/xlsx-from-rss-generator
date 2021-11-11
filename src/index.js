@@ -10,7 +10,7 @@ const parser = new Parser()
 
 let convertFeedToPosts = feed => [...feed.items.map(item => item.link)]
 
-let generatePostsTextFromFeed = async (feed, amount) => {
+let generatePostsMetaFromFeed = async (feed, amount) => {
   let res = []
 
   let posts = []
@@ -64,7 +64,7 @@ let generatePostsTextFromFeed = async (feed, amount) => {
 
   for (let i = 0; i < posts.length; i++) {
     let postLink = posts[i]
-    let title, description
+    let title, description, image
 
     await rp(postLink)
       .then(html => {
@@ -75,6 +75,9 @@ let generatePostsTextFromFeed = async (feed, amount) => {
           })
           tree.match({ attrs: { name: 'description' }, tag: 'meta' }, node => {
             description = node.attrs.content
+          })
+          tree.match({ attrs: { property: 'og:image' }, tag: 'meta' }, node => {
+            image = node.attrs.content
           })
         }).process(html)
 
@@ -87,6 +90,7 @@ let generatePostsTextFromFeed = async (feed, amount) => {
     res.push({
       title,
       description,
+      image,
       link: postLink
     })
   }
@@ -109,7 +113,7 @@ let entry = async (rssFeed, amount = 5, outputFileName = 'result') => {
   ]
 
   process.stdout.write(`generating posts from rss feed...\n`)
-  let generatedRows = await generatePostsTextFromFeed(feed, amount)
+  let generatedRows = await generatePostsMetaFromFeed(feed, amount)
   let generatedRowsBar = new ProgressBar('[:bar] :current/:total table rows generated\n', {
     incomplete: ' ',
     complete: '#',
@@ -118,13 +122,13 @@ let entry = async (rssFeed, amount = 5, outputFileName = 'result') => {
 
   process.stdout.write(`making some rows for your sheet...\n`)
   for (let i = 0; i < generatedRows.length; i++) {
-    let { title, description, link } = generatedRows[i]
+    let { title, description, image, link } = generatedRows[i]
     let columnText = `${title}\n\n${description}\n\n${link}`
 
     worksheet.addRow({
       col_text: columnText,
       col_url: link,
-      col_images: '',
+      col_images: image,
       col_time: moment().add(i, 'days').format('DD/MM/YYYY hh:mm').toString()
     })
 
